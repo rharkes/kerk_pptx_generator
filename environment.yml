@@ -1,0 +1,9 @@
+name: kerk_pptx_generator
+channels:
+  - conda-forge
+dependencies:
+  - conda-forge::python=3.9
+  - conda-forge::python-pptx
+  - conda-forge::PySide6
+  - conda-forge::numpy
+  - conda-forge::imageio

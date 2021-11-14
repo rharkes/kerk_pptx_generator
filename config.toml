@@ -1,0 +1,9 @@
+directory = "D:\\github_reps\\kerk_pptx_generator\\example"
+liedbestand = "Liederen.txt"
+pptxbestand = "Kerkdienst.pptx"
+
+[slideproperties]
+topmargin = 0.5
+leftmargin = 1.0
+width = 16.0
+height = 9.0

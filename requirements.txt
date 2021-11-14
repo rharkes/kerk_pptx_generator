@@ -1,0 +1,4 @@
+Pillow
+toml
+pyinstaller
+python-pptx
