@@ -7,7 +7,7 @@ For testing with IPython:
 from abc import ABC
 from collections.abc import Generator
 from pathlib import Path
-
+import re
 from pptx import Presentation
 from pptx.util import Cm as Centimeter
 from PIL.PngImagePlugin import PngImageFile
@@ -41,7 +41,8 @@ class SlideProperties:
 
 class SongList(Generator, ABC):
     """
-    Accepts the image path and list path and generates paths to images
+    Accepts the image path and list path and generates paths to images.
+    Not very usefull since it already generates a list, but wanted to try a Generator.
     """
 
     def __init__(self, img_pth, list_pth):
@@ -96,7 +97,7 @@ def make_presentation(slidecfg):
     return prs
 
 
-def add_pictureslide(prs, img_path, cfg):
+def add_pictureslide(prs: Presentation, img_path: Path, cfg: dict) -> Presentation:
     """
     Add a slide with a picture from img_path with specific margin
     :param prs:
@@ -111,7 +112,15 @@ def add_pictureslide(prs, img_path, cfg):
     sp.setratio(imrat)
     slide.shapes.add_picture(str(img_path), left=sp.leftmargin, top=sp.topmargin,
                              width=sp.availablewidth, height=sp.availableheight)
-
+    notes_slide = slide.notes_slide
+    text_frame = notes_slide.notes_text_frame
+    if cfg['include_notes']:
+        filename = img_path.name
+        nrs = re.findall('[0-9]+', filename)
+        if str.__contains__(filename, 'couplet'):
+            text_frame.text = f"Lied {nrs[0]} couplet {nrs[1]}"
+        else:
+            text_frame.text = f"Lied {nrs[0]}"
     return prs
 
 

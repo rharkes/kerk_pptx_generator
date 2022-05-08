@@ -7,3 +7,4 @@ topmargin = 0.5
 leftmargin = 1.0
 width = 16.0
 height = 9.0
+include_notes = true
