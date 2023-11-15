@@ -35,7 +35,7 @@ class SlideProperties:
             self.leftmargin += (self.availablewidth - requiredwidth) / 2
             self.recalculate()
         else:  # height must decrease directly, topmargin stays the same
-            self.availableheight *= (self.ratio / newratio)
+            self.availableheight *= self.ratio / newratio
             self.ratio = self.availablewidth / self.availableheight
 
 
@@ -66,9 +66,12 @@ class SongList(Generator, ABC):
             lines = f.readlines()
         allpaths = []
         for line in lines:
-            values = line.split(' ', 1)  # splits het lied af van de coupletten
+            values = line.split(" ", 1)  # splits het lied af van de coupletten
             if len(values) == 1:  # alle coupletten
-                iml = [x for x in self.img_pth.glob(f'projectie-{values[0].strip()}-muziek*')]
+                iml = [
+                    x
+                    for x in self.img_pth.glob(f"projectie-{values[0].strip()}-muziek*")
+                ]
                 if len(iml) == 0:
                     print(f"WAARSCHUWING: Lied{values[0].strip()} niet gevonden.")
                 else:
@@ -76,12 +79,19 @@ class SongList(Generator, ABC):
                     pass
             else:  # coupletten gespecificeerd
                 iml = []
-                coupletten = values[1].split(',')
+                coupletten = values[1].split(",")
                 for c in coupletten:
                     cs = c.strip()
-                    new_iml = [x for x in self.img_pth.glob(f'projectie-{values[0]}-muziek-couplet-{cs}*')]
+                    new_iml = [
+                        x
+                        for x in self.img_pth.glob(
+                            f"projectie-{values[0]}-muziek-couplet-{cs}*"
+                        )
+                    ]
                     if len(new_iml) == 0:
-                        print(f"WAARSCHUWING: Lied{values[0]} couplet{cs} niet gevonden.")
+                        print(
+                            f"WAARSCHUWING: Lied{values[0]} couplet{cs} niet gevonden."
+                        )
                     else:
                         # print(f"Lied{values[0]} couplet{cs} : {new_iml}")
                         pass
@@ -92,8 +102,8 @@ class SongList(Generator, ABC):
 
 def make_presentation(slidecfg):
     prs = Presentation()
-    prs.slide_width = Centimeter(slidecfg['width'])
-    prs.slide_height = Centimeter(slidecfg['height'])
+    prs.slide_width = Centimeter(slidecfg["width"])
+    prs.slide_height = Centimeter(slidecfg["height"])
     return prs
 
 
@@ -105,19 +115,26 @@ def add_pictureslide(prs: Presentation, img_path: Path, cfg: dict) -> Presentati
     :param cfg:
     :return:
     """
-    sp = SlideProperties(cfg['topmargin'], cfg['leftmargin'], cfg['width'], cfg['height'])
+    sp = SlideProperties(
+        cfg["topmargin"], cfg["leftmargin"], cfg["width"], cfg["height"]
+    )
     blank_slide_layout = prs.slide_layouts[6]
     slide = prs.slides.add_slide(blank_slide_layout)
     img_path, imrat = crop_picture(img_path)
     sp.setratio(imrat)
-    slide.shapes.add_picture(str(img_path), left=sp.leftmargin, top=sp.topmargin,
-                             width=sp.availablewidth, height=sp.availableheight)
+    slide.shapes.add_picture(
+        str(img_path),
+        left=sp.leftmargin,
+        top=sp.topmargin,
+        width=sp.availablewidth,
+        height=sp.availableheight,
+    )
     notes_slide = slide.notes_slide
     text_frame = notes_slide.notes_text_frame
-    if cfg['include_notes']:
+    if cfg["include_notes"]:
         filename = img_path.name
-        nrs = re.findall('[0-9]+', filename)
-        if str.__contains__(filename, 'couplet'):
+        nrs = re.findall("[0-9]+", filename)
+        if str.__contains__(filename, "couplet"):
             text_frame.text = f"Lied {nrs[0]} couplet {nrs[1]}"
         else:
             text_frame.text = f"Lied {nrs[0]}"
@@ -131,16 +148,16 @@ def crop_picture(img_path_in):
     :param img_path_in:
     :return:
     """
-    img_path_out = Path(img_path_in.parent, 'crops', img_path_in.stem + "_crp.png")
+    img_path_out = Path(img_path_in.parent, "crops", img_path_in.stem + "_crp.png")
     if img_path_out.exists():
         im = PngImageFile(img_path_out)
         return img_path_out, im.width / im.height
-    '''
+    """
     Python only evaluates the portion of a logical expression as is necessary to determine the outcome, 
     and returns the last value examined as the result of the expression. 
     So if the expression above is false (0), Python does not look at the second operand, 
     and thus returns 0. Otherwise, it returns 255.
-    '''
+    """
     im = PngImageFile(img_path_in)
     source = im.split()
     mask = source[0].point(lambda i: i < 255 and 255)
