@@ -16,6 +16,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
-        run: pip install mypy, types-Pillow
+        run: pip install mypy types-Pillow
       - name: MyPy test typing
         run: mypy
