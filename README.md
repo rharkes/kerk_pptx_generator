@@ -8,3 +8,6 @@ Genereer automatisch .pptx bestanden voor kerkdiensten gebaseerd op een .txt bes
 Clone de repository
 
 `pip install -e .`
+
+### Build instructies
+`pyinstaller maakkerkpptx.spec`

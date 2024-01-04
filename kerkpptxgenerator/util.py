@@ -4,32 +4,38 @@ For testing with IPython:
 %load_ext autoreload
 %autoreload 2
 """
-from abc import ABC
-from collections.abc import Generator
 from pathlib import Path
 import re
+from typing import List
+
 from pptx import Presentation
 from pptx.util import Cm as Centimeter
 from PIL.PngImagePlugin import PngImageFile
 
 
 class SlideProperties:
-    def __init__(self, topmargin=0.5, leftmargin=0.5, width=16, height=9):
+    def __init__(
+        self,
+        topmargin: float = 0.5,
+        leftmargin: float = 0.5,
+        width: float = 16,
+        height: float = 9,
+    ):
         self.topmargin = Centimeter(topmargin)
         self.leftmargin = Centimeter(leftmargin)
         self.width = Centimeter(width)
         self.height = Centimeter(height)
-        self.availablewidth = 0
-        self.availableheight = 0
-        self.ratio = 0
+        self.availablewidth = 0.0
+        self.availableheight = 0.0
+        self.ratio = 0.0
         self.recalculate()
 
-    def recalculate(self):
+    def recalculate(self) -> None:
         self.availablewidth = self.width - 2 * self.leftmargin
         self.availableheight = self.height - 2 * self.topmargin
         self.ratio = self.availablewidth / self.availableheight
 
-    def setratio(self, newratio):
+    def setratio(self, newratio: float) -> None:
         if newratio < self.ratio:  # width must decrease by increasing leftmargin
             requiredwidth = (newratio / self.ratio) * self.availablewidth
             self.leftmargin += (self.availablewidth - requiredwidth) / 2
@@ -39,29 +45,18 @@ class SlideProperties:
             self.ratio = self.availablewidth / self.availableheight
 
 
-class SongList(Generator, ABC):
+class SongList:
     """
     Accepts the image path and list path and generates paths to images.
-    Not very usefull since it already generates a list, but wanted to try a Generator.
     """
 
-    def __init__(self, img_pth, list_pth):
+    def __init__(self, img_pth: Path, list_pth: Path):
         self.img_pth = Path(img_pth)
         self.list_pth = Path(list_pth)
-        self.idx = -1
+        self.idx = -1  # type: int
         self.paths = self.getpaths()
 
-    def send(self, ignored_arg):
-        self.idx += 1
-        if self.idx >= len(self.paths):
-            self.throw()
-        else:
-            return self.paths[self.idx]
-
-    def throw(self, type=None, value=None, traceback=None):
-        raise StopIteration
-
-    def getpaths(self):
+    def getpaths(self) -> List[Path]:
         with open(self.list_pth) as f:
             lines = f.readlines()
         allpaths = []
@@ -73,13 +68,27 @@ class SongList(Generator, ABC):
                     for x in self.img_pth.glob(f"projectie-{values[0].strip()}-muziek*")
                 ]
                 if len(iml) == 0:
-                    print(f"WAARSCHUWING: Lied{values[0].strip()} niet gevonden.")
+                    print(f"WAARSCHUWING: Lied {values[0].strip()} niet gevonden.")
                 else:
                     # print(f"Lied{values[0]} : {iml}")
                     pass
             else:  # coupletten gespecificeerd
                 iml = []
                 coupletten = values[1].split(",")
+                if (
+                    values[0] == "1004"
+                ):  # Lied 1004 is anders, heeft een opening en sluiting, coupletten staan ertussen
+                    iml += [x for x in self.img_pth.glob("projectie-1004-muziek-1.png")]
+                    for c in coupletten:
+                        csi = int(c.strip())
+                        iml += [
+                            x
+                            for x in self.img_pth.glob(
+                                f"projectie-1004-muziek-{csi+1}.png"
+                            )
+                        ]
+                    iml += [x for x in self.img_pth.glob("projectie-1004-muziek-9.png")]
+                    coupletten = []
                 for c in coupletten:
                     cs = c.strip()
                     new_iml = [
@@ -90,7 +99,7 @@ class SongList(Generator, ABC):
                     ]
                     if len(new_iml) == 0:
                         print(
-                            f"WAARSCHUWING: Lied{values[0]} couplet{cs} niet gevonden."
+                            f"WAARSCHUWING: Lied {values[0]} couplet {cs} niet gevonden."
                         )
                     else:
                         # print(f"Lied{values[0]} couplet{cs} : {new_iml}")
@@ -100,14 +109,16 @@ class SongList(Generator, ABC):
         return allpaths
 
 
-def make_presentation(slidecfg):
+def make_presentation(slidecfg: dict[str, float]) -> Presentation:
     prs = Presentation()
     prs.slide_width = Centimeter(slidecfg["width"])
     prs.slide_height = Centimeter(slidecfg["height"])
     return prs
 
 
-def add_pictureslide(prs: Presentation, img_path: Path, cfg: dict) -> Presentation:
+def add_pictureslide(
+    prs: Presentation, img_path: Path, cfg: dict[str, float]
+) -> Presentation:
     """
     Add a slide with a picture from img_path with specific margin
     :param prs:
@@ -141,7 +152,7 @@ def add_pictureslide(prs: Presentation, img_path: Path, cfg: dict) -> Presentati
     return prs
 
 
-def crop_picture(img_path_in):
+def crop_picture(img_path_in: Path) -> tuple[Path, float]:
     """
     Crop picture to remove all white space around it
     Save the red channel as grayscale

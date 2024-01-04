@@ -1,4 +1,4 @@
-directory = "D:\\github_reps\\kerk_pptx_generator\\example"
+directory = 'D:\github_reps\kerk_pptx_generator\example'  # enkele quotes zodat dubbele \ niet nodig is.
 liedbestand = "Liederen.txt"
 pptxbestand = "Kerkdienst.pptx"
 
