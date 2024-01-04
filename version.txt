@@ -16,9 +16,9 @@ VSVersionInfo(
         u'040904B0',
         [StringStruct(u'CompanyName', u'R.Harkes'),
         StringStruct(u'FileDescription', u'Kerk pptx generator'),
-        StringStruct(u'FileVersion', u'1.1.1'),
+        StringStruct(u'FileVersion', u'1.2.0'),
         StringStruct(u'InternalName', u'maakkerkpptx'),
-        StringStruct(u'LegalCopyright', u'R.Harkes GPLv3. '),
+        StringStruct(u'LegalCopyright', u'R.Harkes GPLv3'),
         StringStruct(u'OriginalFilename', u'maakkerkpptx.exe'),
         StringStruct(u'ProductName', u'Kerk pptx generator'),
         StringStruct(u'ProductVersion', u'1.2.0')])
