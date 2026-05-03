@@ -4,13 +4,13 @@ For testing with IPython:
 %load_ext autoreload
 %autoreload 2
 """
-from pathlib import Path
-import re
-from typing import List
 
-from pptx import Presentation
-from pptx.util import Cm as Centimeter
+import re
+from pathlib import Path
+
 from PIL.PngImagePlugin import PngImageFile
+from pptx import Presentation, presentation
+from pptx.util import Cm as Centimeter
 
 
 class SlideProperties:
@@ -21,10 +21,12 @@ class SlideProperties:
         width: float = 16,
         height: float = 9,
     ):
-        self.topmargin = Centimeter(topmargin)
-        self.leftmargin = Centimeter(leftmargin)
-        self.width = Centimeter(width)
-        self.height = Centimeter(height)
+        # We store the margins as EMU's as an integer.
+        # (English Metric Unit (EMU) is defined as 1/360,000 of a centimeter)
+        self.topmargin = Centimeter(topmargin)  # type:int
+        self.leftmargin = Centimeter(leftmargin)  # type:int
+        self.width = Centimeter(width)  # type:int
+        self.height = Centimeter(height)  # type:int
         self.availablewidth = 0.0
         self.availableheight = 0.0
         self.ratio = 0.0
@@ -38,7 +40,7 @@ class SlideProperties:
     def setratio(self, newratio: float) -> None:
         if newratio < self.ratio:  # width must decrease by increasing leftmargin
             requiredwidth = (newratio / self.ratio) * self.availablewidth
-            self.leftmargin += (self.availablewidth - requiredwidth) / 2
+            self.leftmargin += int((self.availablewidth - requiredwidth) / 2)
             self.recalculate()
         else:  # height must decrease directly, topmargin stays the same
             self.availableheight *= self.ratio / newratio
@@ -56,17 +58,14 @@ class SongList:
         self.idx = -1  # type: int
         self.paths = self.getpaths()
 
-    def getpaths(self) -> List[Path]:
+    def getpaths(self) -> list[Path]:
         with open(self.list_pth) as f:
             lines = f.readlines()
         allpaths = []
         for line in lines:
             values = line.split(" ", 1)  # splits het lied af van de coupletten
             if len(values) == 1:  # alle coupletten
-                iml = [
-                    x
-                    for x in self.img_pth.glob(f"projectie-{values[0].strip()}-muziek*")
-                ]
+                iml = [x for x in self.img_pth.glob(f"projectie-{values[0].strip()}-muziek*")]
                 if len(iml) == 0:
                     print(f"WAARSCHUWING: Lied {values[0].strip()} niet gevonden.")
                 else:
@@ -75,32 +74,18 @@ class SongList:
             else:  # coupletten gespecificeerd
                 iml = []
                 coupletten = values[1].split(",")
-                if (
-                    values[0] == "1004"
-                ):  # Lied 1004 is anders, heeft een opening en sluiting, coupletten staan ertussen
+                if values[0] == "1004":  # Lied 1004 is anders, heeft een opening en sluiting, coupletten staan ertussen
                     iml += [x for x in self.img_pth.glob("projectie-1004-muziek-1.png")]
                     for c in coupletten:
                         csi = int(c.strip())
-                        iml += [
-                            x
-                            for x in self.img_pth.glob(
-                                f"projectie-1004-muziek-{csi+1}.png"
-                            )
-                        ]
+                        iml += [x for x in self.img_pth.glob(f"projectie-1004-muziek-{csi + 1}.png")]
                     iml += [x for x in self.img_pth.glob("projectie-1004-muziek-9.png")]
                     coupletten = []
                 for c in coupletten:
                     cs = c.strip()
-                    new_iml = [
-                        x
-                        for x in self.img_pth.glob(
-                            f"projectie-{values[0]}-muziek-couplet-{cs}*"
-                        )
-                    ]
+                    new_iml = [x for x in self.img_pth.glob(f"projectie-{values[0]}-muziek-couplet-{cs}*")]
                     if len(new_iml) == 0:
-                        print(
-                            f"WAARSCHUWING: Lied {values[0]} couplet {cs} niet gevonden."
-                        )
+                        print(f"WAARSCHUWING: Lied {values[0]} couplet {cs} niet gevonden.")
                     else:
                         # print(f"Lied{values[0]} couplet{cs} : {new_iml}")
                         pass
@@ -109,7 +94,7 @@ class SongList:
         return allpaths
 
 
-def make_presentation(slidecfg: dict[str, float]) -> Presentation:
+def make_presentation(slidecfg: dict[str, float]) -> presentation.Presentation:
     prs = Presentation()
     prs.slide_width = Centimeter(slidecfg["width"])
     prs.slide_height = Centimeter(slidecfg["height"])
@@ -117,8 +102,8 @@ def make_presentation(slidecfg: dict[str, float]) -> Presentation:
 
 
 def add_pictureslide(
-    prs: Presentation, img_path: Path, cfg: dict[str, float]
-) -> Presentation:
+    prs: presentation.Presentation, img_path: Path, cfg: dict[str, float]
+) -> presentation.Presentation:
     """
     Add a slide with a picture from img_path with specific margin
     :param prs:
@@ -126,9 +111,7 @@ def add_pictureslide(
     :param cfg:
     :return:
     """
-    sp = SlideProperties(
-        cfg["topmargin"], cfg["leftmargin"], cfg["width"], cfg["height"]
-    )
+    sp = SlideProperties(cfg["topmargin"], cfg["leftmargin"], cfg["width"], cfg["height"])
     blank_slide_layout = prs.slide_layouts[6]
     slide = prs.slides.add_slide(blank_slide_layout)
     img_path, imrat = crop_picture(img_path)

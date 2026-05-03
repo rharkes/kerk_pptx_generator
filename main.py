@@ -2,10 +2,11 @@
 Open config.toml en maak kerkpptx
 """
 
-from pathlib import Path
 import tomllib as toml
+from pathlib import Path
+
 import kerkpptxgenerator
-from kerkpptxgenerator import add_pictureslide, make_presentation, SongList
+from kerkpptxgenerator import SongList, add_pictureslide, make_presentation
 
 try:
     print(f"Kerk pptx generator, versie {kerkpptxgenerator.__version__}")
@@ -15,9 +16,7 @@ try:
     print("Presentatie klaarzetten")
     prs = make_presentation(cfg["slideproperties"])
     print("Liederen ophalen")
-    songlist = SongList(
-        Path(cfg["directory"]), Path(cfg["directory"], cfg["liedbestand"])
-    )
+    songlist = SongList(Path(cfg["directory"]), Path(cfg["directory"], cfg["liedbestand"]))
     for song in songlist.paths:
         prs = add_pictureslide(prs, song, cfg["slideproperties"])
     print("Presentatie opslaan")
